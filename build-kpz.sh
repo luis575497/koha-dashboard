@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-OUT="$HERE/releases/koha-dashboard-bibliotecario-v1.3.0.kpz"
+OUT="$HERE/releases/koha-dashboard-bibliotecario-v1.4.0.kpz"
 cd "$HERE"
 mkdir -p "$HERE/releases"
 rm -f "$OUT"

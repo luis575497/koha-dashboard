@@ -1,6 +1,30 @@
 (() => {
   const root = document.getElementById('bb-dashboard');
   if (!root) return;
+  const tabs = [...root.querySelectorAll('[role="tab"]')];
+  const activateTab = (selected, focus = false) => {
+    tabs.forEach(tab => {
+      const active = tab === selected;
+      tab.setAttribute('aria-selected', String(active));
+      tab.tabIndex = active ? 0 : -1;
+      const panel = document.getElementById(tab.getAttribute('aria-controls'));
+      if (panel) panel.hidden = !active;
+    });
+    if (focus) selected.focus();
+  };
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => activateTab(tab));
+    tab.addEventListener('keydown', e => {
+      let next = index;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (index + 1) % tabs.length;
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (index + tabs.length - 1) % tabs.length;
+      else if (e.key === 'Home') next = 0;
+      else if (e.key === 'End') next = tabs.length - 1;
+      else return;
+      e.preventDefault();
+      activateTab(tabs[next], true);
+    });
+  });
   const form = document.getElementById('bb-filters');
   const status = document.getElementById('bb-status');
   const endpoint = window.location.pathname;

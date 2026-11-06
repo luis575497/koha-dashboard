@@ -12,6 +12,8 @@ Plugin de herramientas para **Koha 24.05 o posterior**. Reúne en una sola panta
 - **Usuarios:** socios vigentes, usuarios activos, socios activos por categoría, incorporaciones por mes, la persona con más préstamos y un top 10 de usuarios con exportación CSV.
 - **Catalogación:** registros bibliográficos añadidos por mes y personal con más altas de registros.
 
+El dashboard organiza los indicadores en pestañas: **Resumen, Circulación, Colección, Usuarios, Atrasos y multas, y Catalogación**. Así cada pantalla muestra solo los gráficos y tablas de ese tema. Se puede navegar con mouse o teclado.
+
 Los paneles se pueden filtrar por biblioteca y por uno, tres, seis o doce meses, o por un rango personalizado. Los indicadores que muestran tablas o series ofrecen exportación CSV.
 
 ## Instalar en Koha
@@ -31,7 +33,7 @@ Requiere `zip`. Desde la raíz de este repositorio:
 ./build-kpz.sh
 ```
 
-El paquete se crea en `releases/koha-dashboard-bibliotecario-v1.3.0.kpz`. El KPZ incluye el módulo Perl, la plantilla y los estilos y scripts del dashboard.
+El paquete se crea en `releases/koha-dashboard-bibliotecario-v1.4.0.kpz`. El KPZ incluye el módulo Perl, la plantilla y los estilos y scripts del dashboard.
 
 ## Cómo se calculan algunos indicadores
 

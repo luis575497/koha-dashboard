@@ -7,7 +7,7 @@ use JSON qw(encode_json);
 use C4::Context;
 use CGI qw(-utf8);
 
-our $VERSION = '1.3.0';
+our $VERSION = '1.4.0';
 
 our $metadata = {
     name            => 'Dashboard bibliotecario',

@@ -27,23 +27,67 @@
     <button class="btn btn-primary" type="submit">Actualizar</button>
   </form>
   <p id="bb-status" role="status" aria-live="polite"></p>
-  <section class="bb-kpis" aria-label="Indicadores principales">
-    <article><span>Préstamos del período</span><strong id="k-checkouts">—</strong><small id="k-checkouts-change">Comparación pendiente</small></article><article><span>Movimiento de títulos</span><strong id="k-title-movement">—</strong><small id="k-title-movement-detail">Títulos prestados / títulos en colección</small></article><article><span>Vencidos ahora</span><strong id="k-overdue">—</strong></article><article><span>Usuarios activos</span><strong id="k-active">—</strong></article>
-    <article><span>Ejemplares sin préstamos</span><strong id="k-idle">—</strong></article><article><span>Ejemplares en colección</span><strong id="k-items">—</strong></article><article><span>Títulos</span><strong id="k-titles">—</strong></article><article><span>Socios vigentes</span><strong id="k-borrowers">—</strong></article>
-    <article><span>Multas por atraso generadas</span><strong id="k-fines-generated">—</strong></article><article><span>Recuperado de multas del período</span><strong id="k-fines-paid">—</strong></article><article><span>Saldo pendiente de multas</span><strong id="k-fines-outstanding">—</strong></article><article><span>Usuario con más préstamos</span><strong id="k-top-borrower" class="bb-name">—</strong><small id="k-top-borrower-detail">En el período seleccionado</small></article>
+  <nav class="bb-tabs" role="tablist" aria-label="Secciones del dashboard">
+    <button class="bb-tab" id="tab-summary" type="button" role="tab" aria-controls="panel-summary" aria-selected="true" tabindex="0">Resumen</button>
+    <button class="bb-tab" id="tab-circulation" type="button" role="tab" aria-controls="panel-circulation" aria-selected="false" tabindex="-1">Circulación</button>
+    <button class="bb-tab" id="tab-collection" type="button" role="tab" aria-controls="panel-collection" aria-selected="false" tabindex="-1">Colección</button>
+    <button class="bb-tab" id="tab-users" type="button" role="tab" aria-controls="panel-users" aria-selected="false" tabindex="-1">Usuarios</button>
+    <button class="bb-tab" id="tab-management" type="button" role="tab" aria-controls="panel-management" aria-selected="false" tabindex="-1">Atrasos y multas</button>
+    <button class="bb-tab" id="tab-cataloguing" type="button" role="tab" aria-controls="panel-cataloguing" aria-selected="false" tabindex="-1">Catalogación</button>
+  </nav>
+  <section class="bb-tab-panel" id="panel-summary" role="tabpanel" aria-labelledby="tab-summary">
+    <h2 class="bb-section-title">Resumen del período</h2>
+    <div class="bb-kpis">
+      <article><span>Préstamos</span><strong id="k-checkouts">—</strong><small id="k-checkouts-change">Comparación pendiente</small></article>
+      <article><span>Movimiento de títulos</span><strong id="k-title-movement">—</strong><small id="k-title-movement-detail">Títulos prestados / títulos en colección</small></article>
+      <article><span>Vencidos ahora</span><strong id="k-overdue">—</strong></article>
+      <article><span>Usuarios activos</span><strong id="k-active">—</strong></article>
+    </div>
+    <p class="bb-hint">Usa las pestañas para consultar la circulación, la colección, los usuarios, los atrasos o la catalogación.</p>
   </section>
-  <section class="bb-grid">
-    <article class="bb-panel"><div class="bb-panel-head"><h2>Circulación mensual</h2><a class="bb-csv" data-dataset="circulation">Exportar CSV</a></div><div id="chart-flow" class="bb-chart"></div></article>
-    <article class="bb-panel"><div class="bb-panel-head"><h2>Multas por atraso</h2><a class="bb-csv" data-dataset="fines">Exportar CSV</a></div><div id="chart-fines" class="bb-chart"></div></article>
-    <article class="bb-panel"><div class="bb-panel-head"><h2>Registros catalogados</h2><a class="bb-csv" data-dataset="cataloguing">Exportar CSV</a></div><div id="chart-cataloguing" class="bb-chart"></div></article>
-    <article class="bb-panel"><div class="bb-panel-head"><h2>Atrasos por antigüedad</h2><a class="bb-csv" data-dataset="overdue_bands">Exportar CSV</a></div><div id="table-overdue-bands"></div></article>
-    <article class="bb-panel"><div class="bb-panel-head"><h2>Rotación por tipo de ítem</h2><a class="bb-csv" data-dataset="itemtype_use">Exportar CSV</a></div><div id="table-itemtype-use"></div></article>
-    <article class="bb-panel"><div class="bb-panel-head"><h2>Préstamos por día y hora</h2><a class="bb-csv" data-dataset="day_hour">Exportar CSV</a></div><div id="chart-day-hour" class="bb-chart"></div></article>
-    <article class="bb-panel"><div class="bb-panel-head"><h2>Socios activos por categoría</h2><a class="bb-csv" data-dataset="borrowers_by_category">Exportar CSV</a></div><div id="table-borrowers-category"></div></article>
-    <article class="bb-panel"><div class="bb-panel-head"><h2>Socios nuevos por mes</h2><a class="bb-csv" data-dataset="new_borrowers">Exportar CSV</a></div><div id="chart-new-borrowers" class="bb-chart"></div></article>
-    <article class="bb-panel"><div class="bb-panel-head"><h2>Top 10 títulos prestados</h2><a class="bb-csv" data-dataset="top_titles">Exportar CSV</a></div><div id="table-titles"></div></article>
-    <article class="bb-panel"><div class="bb-panel-head"><h2>Top 10 usuarios con más préstamos</h2><a class="bb-csv" data-dataset="top_borrowers">Exportar CSV</a></div><div id="table-top-borrowers"></div></article>
-    <article class="bb-panel"><div class="bb-panel-head"><h2>Registros creados por catalogador</h2><a class="bb-csv" data-dataset="cataloguers">Exportar CSV</a></div><div id="table-cataloguers"></div></article>
+  <section class="bb-tab-panel" id="panel-circulation" role="tabpanel" aria-labelledby="tab-circulation" hidden>
+    <div class="bb-grid">
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Circulación mensual</h2><a class="bb-csv" data-dataset="circulation">Exportar CSV</a></div><div id="chart-flow" class="bb-chart"></div></article>
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Préstamos por día y hora</h2><a class="bb-csv" data-dataset="day_hour">Exportar CSV</a></div><div id="chart-day-hour" class="bb-chart"></div></article>
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Top 10 títulos prestados</h2><a class="bb-csv" data-dataset="top_titles">Exportar CSV</a></div><div id="table-titles"></div></article>
+    </div>
+  </section>
+  <section class="bb-tab-panel" id="panel-collection" role="tabpanel" aria-labelledby="tab-collection" hidden>
+    <div class="bb-kpis bb-kpis-compact">
+      <article><span>Ejemplares sin préstamos</span><strong id="k-idle">—</strong></article>
+      <article><span>Ejemplares en colección</span><strong id="k-items">—</strong></article>
+      <article><span>Títulos distintos</span><strong id="k-titles">—</strong></article>
+    </div>
+    <div class="bb-grid"><article class="bb-panel"><div class="bb-panel-head"><h2>Rotación por tipo de ítem</h2><a class="bb-csv" data-dataset="itemtype_use">Exportar CSV</a></div><div id="table-itemtype-use"></div></article></div>
+  </section>
+  <section class="bb-tab-panel" id="panel-users" role="tabpanel" aria-labelledby="tab-users" hidden>
+    <div class="bb-kpis bb-kpis-compact">
+      <article><span>Socios vigentes</span><strong id="k-borrowers">—</strong></article>
+      <article><span>Usuario con más préstamos</span><strong id="k-top-borrower" class="bb-name">—</strong><small id="k-top-borrower-detail">En el período seleccionado</small></article>
+    </div>
+    <div class="bb-grid">
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Top 10 usuarios con más préstamos</h2><a class="bb-csv" data-dataset="top_borrowers">Exportar CSV</a></div><div id="table-top-borrowers"></div></article>
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Socios activos por categoría</h2><a class="bb-csv" data-dataset="borrowers_by_category">Exportar CSV</a></div><div id="table-borrowers-category"></div></article>
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Socios nuevos por mes</h2><a class="bb-csv" data-dataset="new_borrowers">Exportar CSV</a></div><div id="chart-new-borrowers" class="bb-chart"></div></article>
+    </div>
+  </section>
+  <section class="bb-tab-panel" id="panel-management" role="tabpanel" aria-labelledby="tab-management" hidden>
+    <div class="bb-kpis bb-kpis-compact">
+      <article><span>Multas generadas</span><strong id="k-fines-generated">—</strong></article>
+      <article><span>Multas recuperadas</span><strong id="k-fines-paid">—</strong></article>
+      <article><span>Saldo pendiente</span><strong id="k-fines-outstanding">—</strong></article>
+    </div>
+    <div class="bb-grid">
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Multas por atraso</h2><a class="bb-csv" data-dataset="fines">Exportar CSV</a></div><div id="chart-fines" class="bb-chart"></div></article>
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Atrasos por antigüedad</h2><a class="bb-csv" data-dataset="overdue_bands">Exportar CSV</a></div><div id="table-overdue-bands"></div></article>
+    </div>
+  </section>
+  <section class="bb-tab-panel" id="panel-cataloguing" role="tabpanel" aria-labelledby="tab-cataloguing" hidden>
+    <div class="bb-grid">
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Registros catalogados por mes</h2><a class="bb-csv" data-dataset="cataloguing">Exportar CSV</a></div><div id="chart-cataloguing" class="bb-chart"></div></article>
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Registros creados por catalogador</h2><a class="bb-csv" data-dataset="cataloguers">Exportar CSV</a></div><div id="table-cataloguers"></div></article>
+    </div>
+    <p class="bb-note">La atribución por biblioteca usa la biblioteca principal del personal que catalogó y requiere los registros de acción de Koha.</p>
   </section>
   <p class="bb-note">La atribución por biblioteca usa la biblioteca principal del personal que catalogó y requiere los registros de acción de Koha. La anonimización puede reducir el detalle histórico de usuarios activos.</p>
 </main>
