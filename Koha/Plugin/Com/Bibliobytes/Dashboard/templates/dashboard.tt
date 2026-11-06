@@ -1,0 +1,55 @@
+[% USE raw %]
+[% USE Koha %]
+[% SET dashboard_css = PLUGIN_DIR _ '/static/dashboard.css' %]
+[% SET dashboard_js = PLUGIN_DIR _ '/static/dashboard.js' %]
+[% INCLUDE 'doc-head-open.inc' %]
+<title>Dashboard bibliotecario</title>
+<style nonce="[% Koha.CSPNonce | $raw %]">
+[% INCLUDE $dashboard_css %]
+</style>
+[% INCLUDE 'doc-head-close.inc' %]
+<body id="bb-dashboard-page" class="tools">
+[% INCLUDE 'header.inc' %]
+<main class="main container-fluid">
+<div class="row">
+<aside class="col-md-2">
+  [% INCLUDE 'tools-menu.inc' %]
+</aside>
+<div class="col-md-10">
+<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Inicio</a> &rsaquo; <a href="/cgi-bin/koha/tools/tools-home.pl">Herramientas</a> &rsaquo; Dashboard bibliotecario</div>
+<main id="bb-dashboard" class="container-fluid">
+  <h1>Dashboard bibliotecario</h1>
+  <p class="bb-intro">Indicadores de circulación, colección, usuarios y catalogación.</p>
+  <form id="bb-filters" class="bb-filters">
+    <label>Período<select name="range" id="bb-range"><option value="1">Último mes</option><option value="3">Últimos 3 meses</option><option value="6" selected>Últimos 6 meses</option><option value="12">Último año</option><option value="custom">Personalizado</option></select></label>
+    <label>Desde <input type="date" name="from" id="bb-from"></label><label>Hasta <input type="date" name="to" id="bb-to"></label>
+    <label>Biblioteca<select name="branch" id="bb-branch"><option value="">Todas</option>[% FOREACH branch IN branches %]<option value="[% branch.branchcode | html %]">[% branch.branchname | html %]</option>[% END %]</select></label>
+    <button class="btn btn-primary" type="submit">Actualizar</button>
+  </form>
+  <p id="bb-status" role="status" aria-live="polite"></p>
+  <section class="bb-kpis" aria-label="Indicadores principales">
+    <article><span>Préstamos del período</span><strong id="k-checkouts">—</strong><small id="k-checkouts-change">Comparación pendiente</small></article><article><span>Movimiento de títulos</span><strong id="k-title-movement">—</strong><small id="k-title-movement-detail">Títulos prestados / títulos en colección</small></article><article><span>Vencidos ahora</span><strong id="k-overdue">—</strong></article><article><span>Usuarios activos</span><strong id="k-active">—</strong></article>
+    <article><span>Ejemplares sin préstamos</span><strong id="k-idle">—</strong></article><article><span>Ejemplares en colección</span><strong id="k-items">—</strong></article><article><span>Títulos</span><strong id="k-titles">—</strong></article><article><span>Socios vigentes</span><strong id="k-borrowers">—</strong></article>
+    <article><span>Multas por atraso generadas</span><strong id="k-fines-generated">—</strong></article><article><span>Recuperado de multas del período</span><strong id="k-fines-paid">—</strong></article><article><span>Saldo pendiente de multas</span><strong id="k-fines-outstanding">—</strong></article><article><span>Usuario con más préstamos</span><strong id="k-top-borrower" class="bb-name">—</strong><small id="k-top-borrower-detail">En el período seleccionado</small></article>
+  </section>
+  <section class="bb-grid">
+    <article class="bb-panel"><div class="bb-panel-head"><h2>Circulación mensual</h2><a class="bb-csv" data-dataset="circulation">Exportar CSV</a></div><div id="chart-flow" class="bb-chart"></div></article>
+    <article class="bb-panel"><div class="bb-panel-head"><h2>Multas por atraso</h2><a class="bb-csv" data-dataset="fines">Exportar CSV</a></div><div id="chart-fines" class="bb-chart"></div></article>
+    <article class="bb-panel"><div class="bb-panel-head"><h2>Registros catalogados</h2><a class="bb-csv" data-dataset="cataloguing">Exportar CSV</a></div><div id="chart-cataloguing" class="bb-chart"></div></article>
+    <article class="bb-panel"><div class="bb-panel-head"><h2>Atrasos por antigüedad</h2><a class="bb-csv" data-dataset="overdue_bands">Exportar CSV</a></div><div id="table-overdue-bands"></div></article>
+    <article class="bb-panel"><div class="bb-panel-head"><h2>Rotación por tipo de ítem</h2><a class="bb-csv" data-dataset="itemtype_use">Exportar CSV</a></div><div id="table-itemtype-use"></div></article>
+    <article class="bb-panel"><div class="bb-panel-head"><h2>Préstamos por día y hora</h2><a class="bb-csv" data-dataset="day_hour">Exportar CSV</a></div><div id="chart-day-hour" class="bb-chart"></div></article>
+    <article class="bb-panel"><div class="bb-panel-head"><h2>Socios activos por categoría</h2><a class="bb-csv" data-dataset="borrowers_by_category">Exportar CSV</a></div><div id="table-borrowers-category"></div></article>
+    <article class="bb-panel"><div class="bb-panel-head"><h2>Socios nuevos por mes</h2><a class="bb-csv" data-dataset="new_borrowers">Exportar CSV</a></div><div id="chart-new-borrowers" class="bb-chart"></div></article>
+    <article class="bb-panel"><div class="bb-panel-head"><h2>Top 10 títulos prestados</h2><a class="bb-csv" data-dataset="top_titles">Exportar CSV</a></div><div id="table-titles"></div></article>
+    <article class="bb-panel"><div class="bb-panel-head"><h2>Registros creados por catalogador</h2><a class="bb-csv" data-dataset="cataloguers">Exportar CSV</a></div><div id="table-cataloguers"></div></article>
+  </section>
+  <p class="bb-note">La atribución por biblioteca usa la biblioteca principal del personal que catalogó y requiere los registros de acción de Koha. La anonimización puede reducir el detalle histórico de usuarios activos.</p>
+</main>
+</div>
+</div>
+</main>
+<script nonce="[% Koha.CSPNonce | $raw %]">
+[% INCLUDE $dashboard_js %]
+</script>
+[% INCLUDE 'intranet-bottom.inc' %]

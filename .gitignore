@@ -1,0 +1,6 @@
+# Old prototype kept locally; the maintained plugin source lives under Koha/.
+/koha-plugin-bibliobytes-dashboard/
+
+# Editor and operating-system files
+.DS_Store
+*~
