@@ -64,7 +64,7 @@
       Object.entries(cards).forEach(([n,v])=>{const el=document.getElementById(`k-${n}`);if(el)el.textContent=fmt(v);});
       document.getElementById('k-title-movement').textContent=`${Number(k.title_movement||0).toFixed(1)}%`;
       document.getElementById('k-title-movement-detail').textContent=`${fmt(k.circulated_titles)} de ${fmt(k.titles)} títulos distintos prestados`;
-      const leader=d.top_borrower?.[0];
+      const leader=d.top_borrowers?.[0];
       document.getElementById('k-top-borrower').textContent=leader?.borrower||'Sin datos';
       document.getElementById('k-top-borrower-detail').textContent=leader?`${fmt(leader.checkouts)} préstamos en el período`:'No hay préstamos asociados a usuarios';
       const change=k.checkouts_change;
@@ -83,6 +83,7 @@
       table(document.getElementById('table-borrowers-category'),d.borrowers_by_category,['category','active_borrowers'],['Categoría','Socios activos']);
       table(document.getElementById('table-titles'),d.top_titles,['title','checkouts'],['Título','Préstamos']);
       table(document.getElementById('table-cataloguers'),d.cataloguers,['cataloguer','records'],['Catalogador','Registros']);
+      table(document.getElementById('table-top-borrowers'),(d.top_borrowers||[]).map((r,i)=>({position:i+1,...r})),['position','borrower','checkouts'],['N.º','Usuario','Préstamos']);
       document.querySelectorAll('.bb-csv').forEach(a=>{const p=params();p.set('sub','csv');p.set('dataset',a.dataset.dataset);a.href=`${endpoint}?${p}`;});
       status.textContent=`Datos del ${d.from} al ${d.to}. Comparación: ${d.previous_from} al ${d.previous_to}.`;
     } catch(err){status.textContent='No se pudieron cargar las estadísticas. Revise los permisos y los registros de Koha.';console.error(err);}

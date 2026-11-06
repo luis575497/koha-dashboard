@@ -7,7 +7,7 @@ use JSON qw(encode_json);
 use C4::Context;
 use CGI qw(-utf8);
 
-our $VERSION = '1.2.0';
+our $VERSION = '1.3.0';
 
 our $metadata = {
     name            => 'Dashboard bibliotecario',
@@ -88,7 +88,7 @@ sub _data {
         SUM(CASE WHEN DATEDIFF(CURDATE(),date_due) > 90 THEN 1 ELSE 0 END) AS days_over_90
         FROM issues WHERE date_due < CURDATE()}.($branch ? ' AND branchcode = ?' : ''),@bind);
     my $active = $scalar->(q{SELECT COUNT(DISTINCT s.borrowernumber) FROM statistics s WHERE s.type IN ('issue','renew') AND s.datetime >= ? AND s.datetime < DATE_ADD(?, INTERVAL 1 DAY)}.($branch ? ' AND s.branch = ?' : ''),$from,$to,@bind);
-    my $top_borrower = $q->(q{SELECT CONCAT_WS(' ',b.firstname,b.surname) AS borrower,COUNT(*) AS checkouts FROM statistics s JOIN borrowers b ON b.borrowernumber=s.borrowernumber WHERE s.type='issue' AND s.datetime >= ? AND s.datetime < DATE_ADD(?, INTERVAL 1 DAY)}.($branch ? ' AND s.branch = ?' : '').q{ GROUP BY b.borrowernumber,b.firstname,b.surname ORDER BY checkouts DESC,b.surname,b.firstname LIMIT 1},$from,$to,@bind);
+    my $top_borrowers = $q->(q{SELECT CONCAT_WS(' ',b.firstname,b.surname) AS borrower,COUNT(*) AS checkouts FROM statistics s JOIN borrowers b ON b.borrowernumber=s.borrowernumber WHERE s.type='issue' AND s.datetime >= ? AND s.datetime < DATE_ADD(?, INTERVAL 1 DAY)}.($branch ? ' AND s.branch = ?' : '').q{ GROUP BY b.borrowernumber,b.firstname,b.surname ORDER BY checkouts DESC,b.surname,b.firstname LIMIT 10},$from,$to,@bind);
     my $inactive = $scalar->(q{SELECT COUNT(*) FROM items i WHERE NOT EXISTS (SELECT 1 FROM statistics s WHERE s.itemnumber=i.itemnumber AND s.type='issue' AND s.datetime >= ? AND s.datetime < DATE_ADD(?, INTERVAL 1 DAY))}.($branch ? ' AND i.homebranch = ?' : ''),$from,$to,@bind);
     my $collection = $scalar->('SELECT COUNT(*) FROM items'.($branch ? ' WHERE homebranch = ?' : ''),@bind);
     my $titles = $scalar->('SELECT COUNT(DISTINCT biblionumber) FROM items'.($branch ? ' WHERE homebranch = ?' : ''),@bind);
@@ -129,7 +129,7 @@ sub _data {
         overdue=>$due_now,active_borrowers=>$active,idle_items=>$inactive,items=>$collection,titles=>$titles,circulated_titles=>$circulated_titles,title_movement=>$title_movement,borrowers=>$borrowers,
         fines_generated=>0+($fines->{generated}||0),fines_paid=>0+($fines->{paid}||0),fines_outstanding=>0+($fines->{outstanding}||0) },
         flow=>$flow,cataloguers=>$cataloguers,cataloguing=>$monthly_cataloguing,fines=>$monthly_fines,top_titles=>$bestsellers,
-        overdue_bands=>$overdue_bands,itemtype_use=>$itemtype_use,day_hour=>$day_hour,top_borrower=>$top_borrower,
+        overdue_bands=>$overdue_bands,itemtype_use=>$itemtype_use,day_hour=>$day_hour,top_borrowers=>$top_borrowers,
         borrowers_by_category=>$borrowers_by_category,new_borrowers=>$new_borrowers };
     $self->output( encode_json($payload), 'json', undef, { force_no_caching => 1 } );
 }
@@ -138,7 +138,7 @@ sub _csv {
     my ( $self, $cgi ) = @_;
     my $data = $self->_get_data($cgi);
     my $name = $cgi->param('dataset') || 'circulation';
-    my %sets = ( circulation=>$data->{flow}, cataloguing=>$data->{cataloguing}, cataloguers=>$data->{cataloguers}, top_titles=>$data->{top_titles}, fines=>$data->{fines}, overdue_bands=>$data->{overdue_bands}, itemtype_use=>$data->{itemtype_use}, day_hour=>$data->{day_hour}, borrowers_by_category=>$data->{borrowers_by_category}, new_borrowers=>$data->{new_borrowers}, top_borrower=>$data->{top_borrower} );
+    my %sets = ( circulation=>$data->{flow}, cataloguing=>$data->{cataloguing}, cataloguers=>$data->{cataloguers}, top_titles=>$data->{top_titles}, fines=>$data->{fines}, overdue_bands=>$data->{overdue_bands}, itemtype_use=>$data->{itemtype_use}, day_hour=>$data->{day_hour}, borrowers_by_category=>$data->{borrowers_by_category}, new_borrowers=>$data->{new_borrowers}, top_borrowers=>$data->{top_borrowers} );
     my $rows = $sets{$name} || [];
     my @cols = @$rows ? sort keys %{ $rows->[0] } : ('sin_datos');
     my $csv = join(',', map { _csv_cell($_) } @cols) . "\r\n";
@@ -170,8 +170,8 @@ sub _get_data {
     my $day_hour=$q->(q{SELECT DAYOFWEEK(datetime)-1 AS weekday,HOUR(datetime) AS hour,COUNT(*) AS checkouts FROM statistics WHERE type='issue' AND datetime >= ? AND datetime < DATE_ADD(?, INTERVAL 1 DAY)}.($branch?' AND branch = ?':'').q{ GROUP BY DAYOFWEEK(datetime),HOUR(datetime) ORDER BY weekday,hour},$from,$to,@bind);
     my $borrowers_by_category=$q->(q{SELECT COALESCE(c.description,b.categorycode,'Sin categoría') AS category,COUNT(DISTINCT s.borrowernumber) AS active_borrowers FROM statistics s LEFT JOIN borrowers b ON b.borrowernumber=s.borrowernumber LEFT JOIN categories c ON c.categorycode=b.categorycode WHERE s.type IN ('issue','renew') AND s.datetime >= ? AND s.datetime < DATE_ADD(?, INTERVAL 1 DAY)}.($branch?' AND s.branch = ?':'').q{ GROUP BY category ORDER BY active_borrowers DESC},$from,$to,@bind);
     my $new_borrowers=$q->(q{SELECT DATE_FORMAT(dateenrolled,'%Y-%m') AS month,COUNT(*) AS new_borrowers FROM borrowers WHERE dateenrolled >= ? AND dateenrolled < DATE_ADD(?, INTERVAL 1 DAY)}.($branch?' AND branchcode = ?':'').q{ GROUP BY DATE_FORMAT(dateenrolled,'%Y-%m') ORDER BY month},$from,$to,@bind);
-    my $top_borrower=$q->(q{SELECT CONCAT_WS(' ',b.firstname,b.surname) AS borrower,COUNT(*) AS checkouts FROM statistics s JOIN borrowers b ON b.borrowernumber=s.borrowernumber WHERE s.type='issue' AND s.datetime >= ? AND s.datetime < DATE_ADD(?, INTERVAL 1 DAY)}.($branch?' AND s.branch = ?':'').q{ GROUP BY b.borrowernumber,b.firstname,b.surname ORDER BY checkouts DESC,b.surname,b.firstname LIMIT 1},$from,$to,@bind);
-    return {flow=>$flow,cataloguing=>$cataloguing,cataloguers=>$cataloguers,top_titles=>$top_titles,fines=>$fines,overdue_bands=>$overdue_bands,itemtype_use=>$itemtype_use,day_hour=>$day_hour,borrowers_by_category=>$borrowers_by_category,new_borrowers=>$new_borrowers,top_borrower=>$top_borrower};
+    my $top_borrowers=$q->(q{SELECT CONCAT_WS(' ',b.firstname,b.surname) AS borrower,COUNT(*) AS checkouts FROM statistics s JOIN borrowers b ON b.borrowernumber=s.borrowernumber WHERE s.type='issue' AND s.datetime >= ? AND s.datetime < DATE_ADD(?, INTERVAL 1 DAY)}.($branch?' AND s.branch = ?':'').q{ GROUP BY b.borrowernumber,b.firstname,b.surname ORDER BY checkouts DESC,b.surname,b.firstname LIMIT 10},$from,$to,@bind);
+    return {flow=>$flow,cataloguing=>$cataloguing,cataloguers=>$cataloguers,top_titles=>$top_titles,fines=>$fines,overdue_bands=>$overdue_bands,itemtype_use=>$itemtype_use,day_hour=>$day_hour,borrowers_by_category=>$borrowers_by_category,new_borrowers=>$new_borrowers,top_borrowers=>$top_borrowers};
 }
 
 sub _csv_cell {

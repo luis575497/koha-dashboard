@@ -9,14 +9,14 @@ Plugin de herramientas para **Koha 24.05 o posterior**. Reúne en una sola panta
 - **Comparación temporal:** préstamos del período actual frente a un período anterior de igual duración.
 - **Colección:** cantidad de ejemplares y títulos, ejemplares sin préstamos en el rango elegido, y rotación por tipo de ítem.
 - **Atrasos y multas:** préstamos vencidos actuales por tramos de antigüedad; multas por atraso generadas, recuperadas y pendientes.
-- **Usuarios:** socios vigentes, usuarios activos, socios activos por categoría, incorporaciones por mes y la persona con más préstamos en el período.
+- **Usuarios:** socios vigentes, usuarios activos, socios activos por categoría, incorporaciones por mes, la persona con más préstamos y un top 10 de usuarios con exportación CSV.
 - **Catalogación:** registros bibliográficos añadidos por mes y personal con más altas de registros.
 
 Los paneles se pueden filtrar por biblioteca y por uno, tres, seis o doce meses, o por un rango personalizado. Los indicadores que muestran tablas o series ofrecen exportación CSV.
 
 ## Instalar en Koha
 
-1. Descarga el archivo KPZ desde [releases](releases/).
+1. Descarga el archivo KPZ desde [`releases/`](releases/).
 2. En el intranet de Koha, abre **Herramientas → Plugins** y carga el KPZ.
 3. Habilita el plugin si Koha lo deja desactivado y ejecútalo desde la sección de herramientas de plugins.
 4. Selecciona el período y la biblioteca; pulsa **Actualizar** para consultar los datos.
@@ -31,7 +31,7 @@ Requiere `zip`. Desde la raíz de este repositorio:
 ./build-kpz.sh
 ```
 
-El paquete se crea en `releases/koha-dashboard-bibliotecario-v1.2.0.kpz`. El KPZ incluye el módulo Perl, la plantilla y los estilos y scripts del dashboard.
+El paquete se crea en `releases/koha-dashboard-bibliotecario-v1.3.0.kpz`. El KPZ incluye el módulo Perl, la plantilla y los estilos y scripts del dashboard.
 
 ## Cómo se calculan algunos indicadores
 
@@ -43,7 +43,7 @@ El paquete se crea en `releases/koha-dashboard-bibliotecario-v1.2.0.kpz`. El KPZ
 
 ## Privacidad y permisos
 
-El dashboard muestra el nombre de la persona con más préstamos; limita su consulta al período y a la biblioteca seleccionados. Por tratarse de un dato individual de uso, instala y habilita el plugin solo para personal autorizado según las políticas de privacidad de tu biblioteca. El plugin consulta los datos directamente en Koha y no los envía a servicios externos.
+El dashboard muestra los nombres de los diez usuarios con más préstamos y permite exportarlos en CSV; limita la consulta al período y a la biblioteca seleccionados. Por tratarse de datos individuales de uso, instala y habilita el plugin solo para personal autorizado según las políticas de privacidad de tu biblioteca. El plugin consulta los datos directamente en Koha y no los envía a servicios externos.
 
 ## Limitaciones
 

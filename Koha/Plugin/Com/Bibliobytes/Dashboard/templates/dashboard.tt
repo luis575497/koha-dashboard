@@ -42,6 +42,7 @@
     <article class="bb-panel"><div class="bb-panel-head"><h2>Socios activos por categoría</h2><a class="bb-csv" data-dataset="borrowers_by_category">Exportar CSV</a></div><div id="table-borrowers-category"></div></article>
     <article class="bb-panel"><div class="bb-panel-head"><h2>Socios nuevos por mes</h2><a class="bb-csv" data-dataset="new_borrowers">Exportar CSV</a></div><div id="chart-new-borrowers" class="bb-chart"></div></article>
     <article class="bb-panel"><div class="bb-panel-head"><h2>Top 10 títulos prestados</h2><a class="bb-csv" data-dataset="top_titles">Exportar CSV</a></div><div id="table-titles"></div></article>
+    <article class="bb-panel"><div class="bb-panel-head"><h2>Top 10 usuarios con más préstamos</h2><a class="bb-csv" data-dataset="top_borrowers">Exportar CSV</a></div><div id="table-top-borrowers"></div></article>
     <article class="bb-panel"><div class="bb-panel-head"><h2>Registros creados por catalogador</h2><a class="bb-csv" data-dataset="cataloguers">Exportar CSV</a></div><div id="table-cataloguers"></div></article>
   </section>
   <p class="bb-note">La atribución por biblioteca usa la biblioteca principal del personal que catalogó y requiere los registros de acción de Koha. La anonimización puede reducir el detalle histórico de usuarios activos.</p>
