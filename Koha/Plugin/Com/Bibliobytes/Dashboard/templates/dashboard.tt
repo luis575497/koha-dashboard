@@ -19,16 +19,17 @@
 <div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Inicio</a> &rsaquo; <a href="/cgi-bin/koha/tools/tools-home.pl">Herramientas</a> &rsaquo; Dashboard bibliotecario</div>
 <main id="bb-dashboard" class="container-fluid">
   <h1>Dashboard bibliotecario</h1>
-  <p class="bb-intro">Indicadores de circulación, colección, usuarios y catalogación.</p>
+  <p class="bb-intro">Indicadores de circulación, colección, usuarios y catalogación. Configura tipos de equipo, categorías elegibles y metas desde <strong>Plugins → Configurar</strong>. <button type="button" id="bb-print" class="btn btn-default">Imprimir / Guardar PDF</button></p>
   <form id="bb-filters" class="bb-filters">
-    <label>Período<select name="range" id="bb-range"><option value="1">Último mes</option><option value="3">Últimos 3 meses</option><option value="6" selected>Últimos 6 meses</option><option value="12">Último año</option><option value="custom">Personalizado</option></select></label>
-    <label>Desde <input type="date" name="from" id="bb-from"></label><label>Hasta <input type="date" name="to" id="bb-to"></label>
+    <label>Período<select name="range" id="bb-range"><option value="1" [% IF initial_range == 1 %]selected[% END %]>Último mes</option><option value="3" [% IF initial_range == 3 %]selected[% END %]>Últimos 3 meses</option><option value="6" [% IF initial_range == 6 %]selected[% END %]>Últimos 6 meses</option><option value="12" [% IF initial_range == 12 %]selected[% END %]>Último año</option><option value="custom" [% IF initial_range == 'custom' %]selected[% END %]>Personalizado</option></select></label>
+    <label>Desde <input type="date" name="from" id="bb-from" value="[% initial_from | html %]"></label><label>Hasta <input type="date" name="to" id="bb-to" value="[% initial_to | html %]"></label>
     <label>Biblioteca<select name="branch" id="bb-branch"><option value="">Todas</option>[% FOREACH branch IN branches %]<option value="[% branch.branchcode | html %]">[% branch.branchname | html %]</option>[% END %]</select></label>
     <button class="btn btn-primary" type="submit">Actualizar</button>
   </form>
   <p id="bb-status" role="status" aria-live="polite"></p>
   <nav class="bb-tabs" role="tablist" aria-label="Secciones del dashboard">
     <button class="bb-tab" id="tab-summary" type="button" role="tab" aria-controls="panel-summary" aria-selected="true" tabindex="0">Resumen</button>
+    <button class="bb-tab" id="tab-insights" type="button" role="tab" aria-controls="panel-insights" aria-selected="false" tabindex="-1">Tendencias e insights</button>
     <button class="bb-tab" id="tab-circulation" type="button" role="tab" aria-controls="panel-circulation" aria-selected="false" tabindex="-1">Circulación</button>
     <button class="bb-tab" id="tab-collection" type="button" role="tab" aria-controls="panel-collection" aria-selected="false" tabindex="-1">Colección</button>
     <button class="bb-tab" id="tab-users" type="button" role="tab" aria-controls="panel-users" aria-selected="false" tabindex="-1">Usuarios</button>
@@ -38,35 +39,60 @@
   <section class="bb-tab-panel" id="panel-summary" role="tabpanel" aria-labelledby="tab-summary">
     <h2 class="bb-section-title">Resumen del período</h2>
     <div class="bb-kpis">
-      <article><span>Préstamos</span><strong id="k-checkouts">—</strong><small id="k-checkouts-change">Comparación pendiente</small></article>
-      <article><span>Movimiento de títulos</span><strong id="k-title-movement">—</strong><small id="k-title-movement-detail">Títulos prestados / títulos en colección</small></article>
+      <article><span>Préstamos totales</span><strong id="k-checkouts">—</strong><small id="k-checkouts-change">Comparación pendiente</small></article>
+      <article><span>Préstamos bibliográficos</span><strong id="k-biblio-checkouts">—</strong><small>Excluye los tipos de equipo configurados</small></article>
+      <article><span>Cobertura de la colección</span><strong id="k-title-movement">—</strong><small id="k-title-movement-detail">Títulos con al menos un préstamo</small></article>
       <article><span>Vencidos ahora</span><strong id="k-overdue">—</strong></article>
       <article><span>Usuarios activos</span><strong id="k-active">—</strong></article>
+      <article><span>Uso en sala (si se registra)</span><strong id="k-local-use">—</strong></article>
+      <article id="bb-goal-card" hidden><span>Meta de préstamos</span><strong id="k-goal-progress">—</strong><small id="k-goal-detail"></small></article>
     </div>
-    <p class="bb-hint">Usa las pestañas para consultar la circulación, la colección, los usuarios, los atrasos o la catalogación.</p>
+    <div class="bb-grid bb-summary-grid"><article class="bb-panel"><h2>Tendencia de circulación</h2><div id="chart-summary" class="bb-chart"></div></article><article class="bb-panel"><h2>Lecturas rápidas</h2><div id="bb-summary-insights" class="bb-insights"></div></article></div>
+  </section>
+  <section class="bb-tab-panel" id="panel-insights" role="tabpanel" aria-labelledby="tab-insights" hidden>
+    <h2 class="bb-section-title">Tendencias e insights</h2>
+    <p class="bb-hint">Observaciones basadas en los datos de Koha y el rango seleccionado.</p>
+    <div id="bb-insights" class="bb-insights" aria-live="polite"><p>Cargando análisis…</p></div>
+    <div class="bb-grid">
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Préstamos: últimos 36 meses</h2><a class="bb-csv" data-dataset="history">Exportar CSV</a></div><div id="chart-history" class="bb-chart"></div><p class="bb-note">Mes sin eventos: sin datos registrados. Mes con eventos, pero sin préstamos: valor cero.</p></article>
+      <article class="bb-panel"><h2>Referencia estacional, próximos 3 meses</h2><div class="bb-projection-warning">No es una predicción confirmada. Se muestra solo con 36 meses consecutivos de actividad registrada, valores estables y un rango que no incluya cero.</div><div id="chart-forecast" class="bb-chart"></div></article>
+      <article class="bb-panel" id="branch-comparison-panel" hidden><div class="bb-panel-head"><h2>Comparación por biblioteca</h2><a class="bb-csv" data-dataset="branch_comparison">Exportar CSV</a></div><div id="table-branch-comparison"></div></article>
+    </div>
   </section>
   <section class="bb-tab-panel" id="panel-circulation" role="tabpanel" aria-labelledby="tab-circulation" hidden>
     <div class="bb-grid">
-      <article class="bb-panel"><div class="bb-panel-head"><h2>Circulación mensual</h2><a class="bb-csv" data-dataset="circulation">Exportar CSV</a></div><div id="chart-flow" class="bb-chart"></div></article>
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Circulación mensual total (incluye equipos)</h2><a class="bb-csv" data-dataset="circulation">Exportar CSV</a></div><div class="bb-legend"><span><i class="issues"></i>Préstamos</span><span><i class="renewals"></i>Renovaciones</span><span><i class="returns"></i>Devoluciones</span></div><div id="chart-flow" class="bb-chart"></div></article>
       <article class="bb-panel"><div class="bb-panel-head"><h2>Préstamos por día y hora</h2><a class="bb-csv" data-dataset="day_hour">Exportar CSV</a></div><div id="chart-day-hour" class="bb-chart"></div></article>
-      <article class="bb-panel"><div class="bb-panel-head"><h2>Top 10 títulos prestados</h2><a class="bb-csv" data-dataset="top_titles">Exportar CSV</a></div><div id="table-titles"></div></article>
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Más prestados: material bibliográfico</h2><a class="bb-csv" data-dataset="top_titles">Exportar CSV</a></div><div id="table-titles"></div></article>
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Más prestados: equipos</h2><a class="bb-csv" data-dataset="top_equipment">Exportar CSV</a></div><div id="table-equipment"></div><p class="bb-note">Configura los tipos de equipo en la página de configuración del plugin.</p></article>
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Búsquedas bibliográficas sin resultados (consultas frecuentes)</h2><a class="bb-csv" data-dataset="zero_searches">Exportar CSV</a></div><div id="table-zero-searches"></div><p class="bb-note">Requiere que Koha conserve el historial OPAC (EnableOpacSearchHistory). Solo muestra términos repetidos al menos dos veces. Koha no asigna biblioteca a estas búsquedas, así que el total es global.</p></article>
     </div>
   </section>
   <section class="bb-tab-panel" id="panel-collection" role="tabpanel" aria-labelledby="tab-collection" hidden>
+    <div class="bb-filters"><label>Sin préstamos en<select id="bb-inactive-years"><option value="1">1 año</option><option value="3" selected>3 años</option><option value="5">5 años</option></select></label></div>
     <div class="bb-kpis bb-kpis-compact">
       <article><span>Ejemplares sin préstamos</span><strong id="k-idle">—</strong></article>
       <article><span>Ejemplares en colección</span><strong id="k-items">—</strong></article>
       <article><span>Títulos distintos</span><strong id="k-titles">—</strong></article>
     </div>
-    <div class="bb-grid"><article class="bb-panel"><div class="bb-panel-head"><h2>Rotación por tipo de ítem</h2><a class="bb-csv" data-dataset="itemtype_use">Exportar CSV</a></div><div id="table-itemtype-use"></div></article></div>
+    <div class="bb-grid">
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Rotación: material bibliográfico</h2><a class="bb-csv" data-dataset="itemtype_use">Exportar CSV</a></div><div id="table-itemtype-use"></div></article>
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Rotación: equipos</h2><a class="bb-csv" data-dataset="itemtype_equipment">Exportar CSV</a></div><div id="table-itemtype-equipment"></div><p class="bb-note">Los tipos clasificados como equipo se eligen en Configurar.</p></article>
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Préstamos por clasificación del tejuelo</h2><a class="bb-csv" data-dataset="loans_by_class">Exportar CSV</a></div><div id="table-loans-by-class"></div><p class="bb-note">Usa los tres primeros caracteres de `itemcallnumber` cuando empiezan por número; no siempre equivale a Dewey/CDU.</p></article>
+      <article class="bb-panel"><div class="bb-panel-head"><h2 id="inactive-title">Ejemplares sin préstamos en los últimos 3 años</h2><a class="bb-csv" data-dataset="inactive_by_class">Exportar CSV</a></div><div id="table-inactive-class"></div><p class="bb-note">Revisar la lista junto con antigüedad, estado y pertinencia; no recomienda descarte automático.</p></article>
+    </div>
   </section>
   <section class="bb-tab-panel" id="panel-users" role="tabpanel" aria-labelledby="tab-users" hidden>
-    <div class="bb-kpis bb-kpis-compact">
+    <div class="bb-kpis bb-kpis-compact" id="bb-fines-kpis">
       <article><span>Socios vigentes</span><strong id="k-borrowers">—</strong></article>
-      <article><span>Usuario con más préstamos</span><strong id="k-top-borrower" class="bb-name">—</strong><small id="k-top-borrower-detail">En el período seleccionado</small></article>
+      <article><span>Socios activos / vigentes</span><strong id="k-active-share">—</strong><small>Socios con préstamo o renovación en el período</small></article>
+      <article><span>Activos / socios elegibles</span><strong id="k-eligible-share">—</strong><small id="k-eligible-detail">Categorías configurables en el plugin</small></article>
+      <article><span>Usuarios que repiten</span><strong id="k-returning-rate">—</strong><small id="k-returning-detail">Activos en ambos períodos consecutivos</small></article>
+      <article><span>Nuevos socios que usaron la biblioteca</span><strong id="k-new-activation">—</strong><small id="k-new-activation-detail">Con al menos un préstamo en el período</small></article>
+      <article><span>Usuario con más préstamos</span><strong id="k-top-borrower" class="bb-name">—</strong><small id="k-top-borrower-detail">Nombre visible solo con permiso para gestionar socios</small></article>
     </div>
     <div class="bb-grid">
-      <article class="bb-panel"><div class="bb-panel-head"><h2>Top 10 usuarios con más préstamos</h2><a class="bb-csv" data-dataset="top_borrowers">Exportar CSV</a></div><div id="table-top-borrowers"></div></article>
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Top 10 usuarios con más préstamos</h2><a class="bb-csv" data-dataset="top_borrowers">Exportar CSV</a></div><div id="table-top-borrowers"></div><p class="bb-note">Se muestran alias anónimos por defecto. Los nombres requieren el permiso de Koha para gestionar información de socios.</p></article>
       <article class="bb-panel"><div class="bb-panel-head"><h2>Socios activos por categoría</h2><a class="bb-csv" data-dataset="borrowers_by_category">Exportar CSV</a></div><div id="table-borrowers-category"></div></article>
       <article class="bb-panel"><div class="bb-panel-head"><h2>Socios nuevos por mes</h2><a class="bb-csv" data-dataset="new_borrowers">Exportar CSV</a></div><div id="chart-new-borrowers" class="bb-chart"></div></article>
     </div>
@@ -78,9 +104,11 @@
       <article><span>Saldo pendiente</span><strong id="k-fines-outstanding">—</strong></article>
     </div>
     <div class="bb-grid">
-      <article class="bb-panel"><div class="bb-panel-head"><h2>Multas por atraso</h2><a class="bb-csv" data-dataset="fines">Exportar CSV</a></div><div id="chart-fines" class="bb-chart"></div></article>
-      <article class="bb-panel"><div class="bb-panel-head"><h2>Atrasos por antigüedad</h2><a class="bb-csv" data-dataset="overdue_bands">Exportar CSV</a></div><div id="table-overdue-bands"></div></article>
+      <article class="bb-panel bb-fines-panel"><div class="bb-panel-head"><h2>Multas por atraso</h2><a class="bb-csv" data-dataset="fines">Exportar CSV</a></div><div id="chart-fines" class="bb-chart"></div></article>
+      <article class="bb-panel"><div class="bb-panel-head"><h2>Atrasos por antigüedad</h2><a class="bb-csv" data-dataset="overdue_bands">Exportar CSV</a> [% IF can_view_names %]<a class="bb-csv" data-dataset="overdue_list">Exportar lista de vencidos</a>[% END %]</div><div id="table-overdue-bands"></div><p class="bb-note">Los atrasos de más de 90 días pueden requerir revisión del estado del ejemplar; no se clasifican automáticamente como perdidos.</p></article>
     </div>
+    <p id="fines-no-data" class="bb-note" hidden>Esta biblioteca no registra multas en el período seleccionado.</p>
+    <article class="bb-panel"><h2>Reservas en espera</h2><p>En espera: <strong id="k-holds">—</strong>. Antigüedad media de la cola: <strong id="k-hold-wait">—</strong> días.</p></article>
   </section>
   <section class="bb-tab-panel" id="panel-cataloguing" role="tabpanel" aria-labelledby="tab-cataloguing" hidden>
     <div class="bb-grid">

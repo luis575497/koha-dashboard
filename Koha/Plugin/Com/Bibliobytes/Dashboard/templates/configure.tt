@@ -1,0 +1,40 @@
+[% USE raw %]
+[% USE Koha %]
+[% INCLUDE 'doc-head-open.inc' %]
+<title>Configurar Dashboard bibliotecario</title>
+[% INCLUDE 'doc-head-close.inc' %]
+<body id="bb-dashboard-configure" class="tools">
+[% INCLUDE 'header.inc' %]
+<main class="main container-fluid">
+  <div class="row">
+    <aside class="col-md-2">[% INCLUDE 'tools-menu.inc' %]</aside>
+    <div class="col-md-10">
+      <div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Inicio</a> &rsaquo; <a href="/cgi-bin/koha/plugins/plugins-home.pl">Plugins</a> &rsaquo; Configurar Dashboard bibliotecario</div>
+      <h1>Configurar Dashboard bibliotecario</h1>
+      <form method="post" class="page-section">
+        <fieldset class="rows">
+          <legend>Tipos de ítem que son equipos y no material bibliográfico</legend>
+          <p>Los tipos seleccionados se separan en el top de equipos y se excluyen del alcance de títulos, del reporte de ejemplares sin movimiento y del top bibliográfico. El total general de préstamos conserva todos los materiales.</p>
+          [% FOREACH itemtype IN itemtypes %]
+            <label class="checkbox"><input type="checkbox" name="non_biblio_itemtypes" value="[% itemtype.itemtype | html %]" [% IF itemtype.selected %]checked="checked"[% END %]> [% itemtype.description | html %] ([% itemtype.itemtype | html %])</label>
+          [% END %]
+        </fieldset>
+        <fieldset class="rows">
+          <legend>Meta de préstamos</legend>
+          <label for="checkout_goal">Meta para el período filtrado (0 desactiva la meta)</label>
+          <input type="number" min="0" max="99999999" step="1" id="checkout_goal" name="checkout_goal" value="[% checkout_goal | html %]">
+          <p>La cifra se compara con los préstamos totales del rango seleccionado. Ajusta la meta antes de usarla para un rango diferente.</p>
+        </fieldset>
+        <fieldset class="rows">
+          <legend>Categorías de socios elegibles</legend>
+          <p>Marca las categorías que representan personas actualmente habilitadas para usar la biblioteca (por ejemplo, matrícula vigente). Si no seleccionas ninguna, el dashboard tomará como elegibles todos los socios con ficha no vencida. Koha no puede inferir la vigencia académica si no está registrada en una categoría o campo actualizable.</p>
+          [% FOREACH category IN categories %]
+            <label class="checkbox"><input type="checkbox" name="eligible_categories" value="[% category.categorycode | html %]" [% IF category.selected %]checked="checked"[% END %]> [% category.description | html %] ([% category.categorycode | html %])</label>
+          [% END %]
+        </fieldset>
+        <fieldset class="action"><button type="submit" name="save" value="1" class="btn btn-primary">Guardar configuración</button></fieldset>
+      </form>
+    </div>
+  </div>
+</main>
+[% INCLUDE 'intranet-bottom.inc' %]
