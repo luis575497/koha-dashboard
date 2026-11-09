@@ -8,7 +8,7 @@ Plugin de herramientas para **Koha 24.05 o posterior**. Reúne métricas de circ
 - **Tendencias con contexto de datos:** los gráficos completan los meses sin eventos y los muestran como “sin datos registrados”; un mes con eventos, pero cero préstamos, queda como cero. El gráfico de 36 meses etiqueta cada seis meses. La comparación interanual usa el mismo intervalo de fechas del año previo, no el mes completo contra un mes parcial.
 - **Referencia estacional limitada:** se oculta salvo que existan 36 meses consecutivos con eventos y el rango calculado no sea demasiado amplio ni llegue a cero. Usa el promedio del mismo mes de los dos años previos. Es una referencia, no una predicción validada.
 - **Usuarios y privacidad:** muestra socios activos sobre socios vigentes y sobre categorías elegibles, continuidad entre períodos, y activación de nuevas inscripciones. Las categorías elegibles se configuran por la biblioteca. De forma predeterminada, los tops usan alias; los nombres completos y la exportación de vencidos con nombres requieren el permiso Koha `borrowers → edit_borrowers`.
-- **Colección accionable:** ejemplares sin préstamos en 1, 3 o 5 años, agrupados por prefijo del número de clasificación, además de préstamos por clasificación. El prefijo del tejuelo no siempre equivale a Dewey/CDU.
+- **Colección accionable:** mapas de calor de ejemplares sin préstamos en 1, 3 o 5 años y préstamos por clasificación. Cada cuadro representa un prefijo del tejuelo; tonos más intensos representan más ejemplares o préstamos. El prefijo no siempre equivale a Dewey/CDU. Ambos informes conservan exportación CSV.
 - **Operación y metas:** atrasos por antigüedad, lista CSV de vencidos para personal autorizado, reservas pendientes y antigüedad media de la cola, comparación entre bibliotecas, meta configurable de préstamos y alerta si los préstamos caen al menos 20% frente al período anterior de igual duración.
 - **Búsquedas sin resultados:** términos bibliográficos que se repitieron al menos dos veces sin resultados, si Koha conserva el historial OPAC. Esta métrica es global: Koha no registra la sucursal en `search_history`.
 - **Impresión:** el botón “Imprimir / Guardar PDF” abre la impresión del navegador, donde se puede guardar como PDF.
@@ -25,7 +25,7 @@ Desde **Plugins → Configurar** se pueden definir:
 
 Si no se seleccionan categorías elegibles, el denominador usa todas las fichas de socio no vencidas. Koha no puede conocer la vigencia académica si la biblioteca no la expresa en categorías o en un campo actualizado.
 
-La configuración del plugin requiere el permiso Koha `configure`. Para instalarlo, el servidor debe tener habilitado el sistema de plugins.
+La configuración del plugin requiere el permiso Koha `configure`. El formulario incluye el token CSRF requerido por Koha para guardar cambios. Para instalarlo, el servidor debe tener habilitado el sistema de plugins.
 
 ## Indicadores y límites
 
@@ -55,7 +55,7 @@ Requiere `zip`. Desde la raíz del repositorio:
 ./build-kpz.sh
 ```
 
-Genera `releases/koha-dashboard-bibliotecario-v1.6.0.kpz`.
+Genera `releases/koha-dashboard-bibliotecario-v1.7.0.kpz`.
 
 ## Privacidad
 

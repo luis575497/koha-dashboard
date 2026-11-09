@@ -131,6 +131,18 @@
     return s+'</svg>';
   };
 
+  const classificationHeatmap = (el, rows, valueField, valueLabel) => {
+    if (!rows?.length) { el.innerHTML='<p>Sin datos para este período.</p>'; return; }
+    const max=Math.max(1,...rows.map(r=>Number(r[valueField]||0)));
+    el.innerHTML='<div class="bb-heat-legend"><span>Menos</span><i aria-hidden="true"></i><span>Más</span></div><div class="bb-class-heat-grid" role="grid"></div>';
+    const grid=el.querySelector('.bb-class-heat-grid');
+    grid.innerHTML=rows.map(r=>{
+      const value=Number(r[valueField]||0), intensity=.10+.90*Math.sqrt(value/max);
+      const textColor=intensity>.58?'#fff':'#19384a';
+      return `<div class="bb-class-heat-cell" role="gridcell" title="${esc(r.classification)}: ${fmt(value)} ${esc(valueLabel)}" style="--bb-heat:${intensity};--bb-heat-text:${textColor}"><span>${esc(r.classification)}</span><strong>${fmt(value)}</strong></div>`;
+    }).join('');
+  };
+
   const load = async e => {
     if(e)e.preventDefault();
     status.textContent='Cargando estadísticas…';
@@ -180,8 +192,8 @@
       table(document.getElementById('table-titles'),d.top_titles,['title','checkouts'],['Título','Préstamos']);
       table(document.getElementById('table-equipment'),d.top_equipment,['title','item_type','checkouts'],['Equipo','Tipo','Préstamos']);
       table(document.getElementById('table-zero-searches'),d.zero_searches,['search_term','searches'],['Término repetido sin resultados','Búsquedas']);
-      table(document.getElementById('table-inactive-class'),d.inactive_by_class,['classification','idle_copies'],['Clasificación / Dewey aproximado','Ejemplares']);
-      table(document.getElementById('table-loans-by-class'),d.loans_by_class,['classification','checkouts'],['Clasificación / Dewey aproximado','Préstamos']);
+      classificationHeatmap(document.getElementById('heat-inactive-class'),d.inactive_by_class,'idle_copies','ejemplares sin préstamos');
+      classificationHeatmap(document.getElementById('heat-loans-by-class'),d.loans_by_class,'checkouts','préstamos');
       const branchPanel=document.getElementById('branch-comparison-panel');branchPanel.hidden=!(d.branch_comparison||[]).length;table(document.getElementById('table-branch-comparison'),d.branch_comparison,['branchname','checkouts'],['Biblioteca','Préstamos']);
       table(document.getElementById('table-cataloguers'),d.cataloguers,['cataloguer','records'],['Catalogador','Registros']);
       table(document.getElementById('table-top-borrowers'),(d.top_borrowers||[]).map((r,i)=>({position:i+1,...r})),['position','borrower','checkouts'],['N.º','Usuario','Préstamos']);

@@ -8,7 +8,7 @@ use C4::Context;
 use C4::Auth qw(haspermission);
 use CGI qw(-utf8);
 
-our $VERSION = '1.6.0';
+our $VERSION = '1.7.0';
 
 our $metadata = {
     name            => 'Dashboard bibliotecario',

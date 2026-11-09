@@ -12,6 +12,7 @@
       <div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Inicio</a> &rsaquo; <a href="/cgi-bin/koha/plugins/plugins-home.pl">Plugins</a> &rsaquo; Configurar Dashboard bibliotecario</div>
       <h1>Configurar Dashboard bibliotecario</h1>
       <form method="post" class="page-section">
+        [% INCLUDE 'csrf-token.inc' %]
         <fieldset class="rows">
           <legend>Tipos de ítem que son equipos y no material bibliográfico</legend>
           <p>Los tipos seleccionados se separan en el top de equipos y se excluyen del alcance de títulos, del reporte de ejemplares sin movimiento y del top bibliográfico. El total general de préstamos conserva todos los materiales.</p>
