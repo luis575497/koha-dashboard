@@ -13,6 +13,8 @@
       <h1>Configurar Dashboard bibliotecario</h1>
       <form method="post" class="page-section">
         [% INCLUDE 'csrf-token.inc' %]
+        <input type="hidden" name="class" value="Koha::Plugin::Com::Bibliobytes::Dashboard">
+        <input type="hidden" name="method" value="configure">
         <fieldset class="rows">
           <legend>Tipos de ítem que son equipos y no material bibliográfico</legend>
           <p>Los tipos seleccionados se separan en el top de equipos y se excluyen del alcance de títulos, del reporte de ejemplares sin movimiento y del top bibliográfico. El total general de préstamos conserva todos los materiales.</p>

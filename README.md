@@ -11,6 +11,7 @@ Plugin de herramientas para **Koha 24.05 o posterior**. Reúne métricas de circ
 - **Colección accionable:** mapas de calor de ejemplares sin préstamos en 1, 3 o 5 años y préstamos por clasificación. Cada cuadro representa un prefijo del tejuelo; tonos más intensos representan más ejemplares o préstamos. El prefijo no siempre equivale a Dewey/CDU. Ambos informes conservan exportación CSV.
 - **Operación y metas:** atrasos por antigüedad, lista CSV de vencidos para personal autorizado, reservas pendientes y antigüedad media de la cola, comparación entre bibliotecas, meta configurable de préstamos y alerta si los préstamos caen al menos 20% frente al período anterior de igual duración.
 - **Búsquedas sin resultados:** términos bibliográficos que se repitieron al menos dos veces sin resultados, si Koha conserva el historial OPAC. Esta métrica es global: Koha no registra la sucursal en `search_history`.
+- **Consultas legibles:** el informe de búsquedas elimina los prefijos internos de Koha (por ejemplo `kw,wrdl:` y `ti:`), consolida variantes del mismo término y muestra solo la frase buscada.
 - **Impresión:** el botón “Imprimir / Guardar PDF” abre la impresión del navegador, donde se puede guardar como PDF.
 
 Las tablas incluyen búsqueda local y orden por columna. El uso en sala cuenta solo si la biblioteca registra eventos `localuse`; no equivale a visitas de personas.
@@ -25,7 +26,7 @@ Desde **Plugins → Configurar** se pueden definir:
 
 Si no se seleccionan categorías elegibles, el denominador usa todas las fichas de socio no vencidas. Koha no puede conocer la vigencia académica si la biblioteca no la expresa en categorías o en un campo actualizado.
 
-La configuración del plugin requiere el permiso Koha `configure`. El formulario incluye el token CSRF requerido por Koha para guardar cambios. Para instalarlo, el servidor debe tener habilitado el sistema de plugins.
+La configuración del plugin requiere el permiso Koha `configure`. El formulario incluye el token CSRF y los parámetros de clase y método que Koha requiere para enrutar el POST. Para instalarlo, el servidor debe tener habilitado el sistema de plugins.
 
 ## Indicadores y límites
 
@@ -55,7 +56,7 @@ Requiere `zip`. Desde la raíz del repositorio:
 ./build-kpz.sh
 ```
 
-Genera `releases/koha-dashboard-bibliotecario-v1.7.0.kpz`.
+Genera `releases/koha-dashboard-bibliotecario-v1.8.0.kpz`.
 
 ## Privacidad
 

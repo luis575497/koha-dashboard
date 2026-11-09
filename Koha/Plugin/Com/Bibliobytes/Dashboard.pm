@@ -8,7 +8,7 @@ use C4::Context;
 use C4::Auth qw(haspermission);
 use CGI qw(-utf8);
 
-our $VERSION = '1.7.0';
+our $VERSION = '1.8.0';
 
 our $metadata = {
     name            => 'Dashboard bibliotecario',
@@ -157,7 +157,7 @@ sub _data {
     my $eligible_borrowers = $scalar->('SELECT COUNT(*) FROM borrowers WHERE (dateexpiry IS NULL OR dateexpiry >= CURDATE())'.$eligible_filter.($branch ? ' AND branchcode = ?' : ''),@eligible_categories,@bind);
     my $active_eligible = $scalar->(q{SELECT COUNT(DISTINCT s.borrowernumber) FROM statistics s JOIN borrowers b ON b.borrowernumber=s.borrowernumber WHERE s.type IN ('issue','renew') AND s.datetime >= ? AND s.datetime < DATE_ADD(?, INTERVAL 1 DAY) AND (b.dateexpiry IS NULL OR b.dateexpiry >= CURDATE())}.($branch ? ' AND s.branch = ?' : '').$eligible_filter,$from,$to,@bind,@eligible_categories);
     my $local_use = $scalar->(q{SELECT COUNT(*) FROM statistics WHERE type='localuse' AND datetime >= ? AND datetime < DATE_ADD(?, INTERVAL 1 DAY)}.($branch ? ' AND branch = ?' : ''),$from,$to,@bind);
-    my $zero_searches = $q->(q{SELECT query_desc AS search_term,COUNT(*) AS searches FROM search_history WHERE type='biblio' AND total=0 AND time >= ? AND time < DATE_ADD(?, INTERVAL 1 DAY) GROUP BY query_desc HAVING COUNT(*) >= 2 ORDER BY searches DESC,search_term LIMIT 20},$from,$to);
+    my $zero_searches = _clean_search_results($q->(q{SELECT query_desc AS search_term,COUNT(*) AS searches FROM search_history WHERE type='biblio' AND total=0 AND time >= ? AND time < DATE_ADD(?, INTERVAL 1 DAY) GROUP BY query_desc ORDER BY searches DESC,search_term LIMIT 1000},$from,$to));
     my $new_borrowers_count = $scalar->('SELECT COUNT(*) FROM borrowers WHERE dateenrolled >= ? AND dateenrolled < DATE_ADD(?, INTERVAL 1 DAY)'.($branch ? ' AND branchcode = ?' : ''),$from,$to,@bind);
     my $new_borrowers_active = $scalar->(q{SELECT COUNT(DISTINCT b.borrowernumber) FROM borrowers b JOIN statistics s ON s.borrowernumber=b.borrowernumber AND s.type='issue' AND s.datetime >= ? AND s.datetime < DATE_ADD(?, INTERVAL 1 DAY)}.($branch ? ' AND s.branch = ?' : '').q{ WHERE b.dateenrolled >= ? AND b.dateenrolled < DATE_ADD(?, INTERVAL 1 DAY)}.($branch ? ' AND b.branchcode = ?' : ''),$from,$to,@bind,$from,$to,@bind);
     my $fines = $dbh->selectrow_hashref(q{SELECT COALESCE(SUM(amount),0) AS generated, COALESCE(SUM(amount-amountoutstanding),0) AS paid, COALESCE(SUM(amountoutstanding),0) AS outstanding FROM accountlines WHERE debit_type_code='OVERDUE' AND date >= ? AND date < DATE_ADD(?, INTERVAL 1 DAY)}.($branch ? ' AND branchcode = ?' : ''), undef, $from,$to,@bind);
@@ -253,7 +253,7 @@ sub _get_data {
     my $flow=$q->(q{SELECT DATE_FORMAT(datetime,'%Y-%m') AS month,SUM(type='issue') AS issues,SUM(type='renew') AS renewals,SUM(type='return') AS returns,COUNT(*) AS events FROM statistics WHERE datetime >= ? AND datetime < DATE_ADD(?, INTERVAL 1 DAY)}.($branch?' AND branch = ?':'').q{ GROUP BY DATE_FORMAT(datetime,'%Y-%m') ORDER BY month},$from,$to,@bind);
     my $history=$q->(q{SELECT DATE_FORMAT(datetime,'%Y-%m') AS month,SUM(type='issue') AS issues,COUNT(*) AS events FROM statistics WHERE datetime >= DATE_SUB(DATE_FORMAT(?, '%Y-%m-01'), INTERVAL 35 MONTH) AND datetime < DATE_ADD(?, INTERVAL 1 DAY)}.($branch?' AND branch = ?':'').q{ GROUP BY DATE_FORMAT(datetime,'%Y-%m') ORDER BY month},$to,$to,@bind);
     my $branch_comparison=$branch ? [] : $q->(q{SELECT br.branchcode,br.branchname,COALESCE(SUM(s.type='issue'),0) AS checkouts FROM branches br LEFT JOIN statistics s ON s.branch=br.branchcode AND s.datetime >= ? AND s.datetime < DATE_ADD(?, INTERVAL 1 DAY) GROUP BY br.branchcode,br.branchname ORDER BY checkouts DESC,br.branchname},$from,$to);
-    my $zero_searches=$q->(q{SELECT query_desc AS search_term,COUNT(*) AS searches FROM search_history WHERE type='biblio' AND total=0 AND time >= ? AND time < DATE_ADD(?, INTERVAL 1 DAY) GROUP BY query_desc HAVING COUNT(*) >= 2 ORDER BY searches DESC,search_term LIMIT 20},$from,$to);
+    my $zero_searches=_clean_search_results($q->(q{SELECT query_desc AS search_term,COUNT(*) AS searches FROM search_history WHERE type='biblio' AND total=0 AND time >= ? AND time < DATE_ADD(?, INTERVAL 1 DAY) GROUP BY query_desc ORDER BY searches DESC,search_term LIMIT 1000},$from,$to));
     my $cataloguing=$q->(q{SELECT DATE_FORMAT(al.timestamp,'%Y-%m') AS month,COUNT(*) AS records FROM action_logs al LEFT JOIN borrowers b ON b.borrowernumber=al.user WHERE al.module='CATALOGUING' AND action='ADD' AND al.info='biblio' AND al.timestamp >= ? AND al.timestamp < DATE_ADD(?, INTERVAL 1 DAY)}.($branch?' AND b.branchcode = ?':'').q{ GROUP BY DATE_FORMAT(al.timestamp,'%Y-%m') ORDER BY month},$from,$to,@bind);
     my $cataloguers=$q->(q{SELECT al.user,COALESCE(CONCAT(b.surname, ', ', b.firstname),CONCAT('Usuario ',al.user)) AS cataloguer,COUNT(*) AS records FROM action_logs al LEFT JOIN borrowers b ON b.borrowernumber=al.user WHERE al.module='CATALOGUING' AND al.action='ADD' AND al.info='biblio' AND al.timestamp >= ? AND al.timestamp < DATE_ADD(?, INTERVAL 1 DAY)}.($branch?' AND b.branchcode = ?':'').q{ GROUP BY al.user,b.surname,b.firstname ORDER BY records DESC LIMIT 10},$from,$to,@bind);
     if (!_can_view_names()) { my $n=0; $_->{cataloguer}='Catalogador '.++$n for @$cataloguers; }
@@ -287,6 +287,27 @@ sub _csv_cell {
     $value="'$value" if $value =~ /^[=+\-\@\t\r]/;
     $value =~ s/"/""/g;
     return '"'.$value.'"';
+}
+
+sub _clean_search_results {
+    my ($rows) = @_;
+    my %combined;
+    for my $row (@{$rows || []}) {
+        my $term = $row->{search_term} // '';
+        # search_history.query_desc may contain Koha's internal field prefixes,
+        # for example "kw,wrdl: \"term\"" or "\"ti: term\"".
+        $term =~ s/^\s*["']?\s*(?:[[:alpha:]_][[:alnum:]_-]*(?:\s*,\s*[[:alpha:]_][[:alnum:]_-]*)*\s*:\s*)+//;
+        $term =~ s/^\s*["']+//;
+        $term =~ s/["']+\s*$//;
+        $term =~ s/\s+/ /g;
+        $term =~ s/^\s+|\s+$//g;
+        next unless length $term;
+        $combined{$term} += 0 + ($row->{searches} || 0);
+    }
+    my @terms = sort { $combined{$b} <=> $combined{$a} || lc($a) cmp lc($b) }
+        grep { $combined{$_} >= 2 } keys %combined;
+    splice @terms, 20 if @terms > 20;
+    return [ map { { search_term => $_, searches => $combined{$_} } } @terms ];
 }
 
 1;
